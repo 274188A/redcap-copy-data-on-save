@@ -64,7 +64,7 @@ For instructions that are enabled, and where the destination project is differen
 * *Optional*: a REDCap logic expression that must evaluate to *true* for the current ercord in order for the copty process to be executed. Leave empty to always copy on saving the trigger form(s).
 	
 **Destination project**
-* The project to copy data *to*. Can be within the current project e.g. copying data to other events or fields.
+* The project to copy data *to*. Can be within the current project e.g. copying data to other events or fields. Projects you may select are those for which you have "Design and Setup" rights.
 	
 **Destination event name**
 * *Optional*: the unique event name of the event to copy data to in the destination. Alternatively, a field in the source project (within the trigger context) that will contain the unique event name to use. Leave empty if the destination is not longitudinal or to copy to the first event.
