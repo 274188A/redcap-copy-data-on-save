@@ -620,7 +620,6 @@ class CopyDataOnSave extends AbstractExternalModule {
                     $desc = $this->escape(trim($desc));
                     $descDisplay = '<span class="m-0 text-left cdos-two-line-text" style="font-size:75%; max-width: 20ch;">'.str_replace('\n',' ',$desc).'</span>';
                     return '<span class="cdos-hidden">'.$desc.'</span><button class="cdos-btn-show btn btn-xs btn-outline-primary" title="View full description">'.$descDisplay.'</button>';
-//                    return $descDisplay.'<span class="cdos-hidden">'.$desc.'</span><button class="cdos-btn-show btn btn-xs btn-outline-primary" title="View Description"><i class="fa-solid fa-comment-dots mx-2"></i></button>';
                 }
             }),
             array('title'=>'Enabled','tdclass'=>'text-center','getter'=>function(array $instruction){ 
@@ -1185,7 +1184,7 @@ class CopyDataOnSave extends AbstractExternalModule {
             return array('File "'.$file['name'].'" is not a CSV file');
         }
 
-        $csvArray = \FileManager::readCSV($file['tmp_name'], 0, \User::getCsvDelimiter());
+        $csvArray = \FileManager::readCSV($file['tmp_name'], 0, \User::getCsvDelimiter(), '"', '"');
 
         if (!is_array($csvArray)) return array('Could not read CSV file rows');
         if (count($csvArray) === 0) return array('File contains no rows');
@@ -1280,17 +1279,24 @@ class CopyDataOnSave extends AbstractExternalModule {
         if (count($errors)) return $errors;
 
         // merge uploaded copy-fields instructions into project settings, check for changes, then save
+        $n_current = count($currentSettings['copy-config']);
+        $n_import = count($instructions);
         $newSettings = $currentSettings; // php arrays copy by val not ref
-        $newSettings['copy-config'] = array_fill(0, $rowIndex, 'true'); // copy-config has one element per instruction
+        $newSettings['copy-config'] = array_fill(0, $n_import, 'true'); // copy-config has one element per instruction
         foreach ($instructions as $idx => $instruction) {
             $instructionSettings = $instruction->getAsModuleSettings();
             foreach ($instructionSettings as $key => $value) {
                 $newSettings[$key][$idx] = $value; // e.g. $newSettings['section-description'][0] = 'this is the desc for the first instruction'
+                if ($n_import < $n_current) {
+                    for ($i=$n_import; $i < $n_current; $i++) { 
+                        unset($newSettings[$key][$i]);
+                    }
+                }
             }
         }
 
         $checkKeys = array('section-description','copy-enabled','trigger-form','trigger-logic','dest-project','dest-event','record-id-field','record-create','dag-option','copy-fields','source-field','dest-field','only-if-empty');
-        if (
+        if ($n_import === $n_current &&
             ModuleSettingsManager::are_equal(
                 ModuleSettingsManager::keep_keys($newSettings, $checkKeys), 
                 ModuleSettingsManager::keep_keys($currentSettings, $checkKeys)
@@ -1312,7 +1318,7 @@ class CopyDataOnSave extends AbstractExternalModule {
     /**
      * userPidDesign()
      * Does current user have design rights in project?
-     * @param mixed project id
+     * @param mixed $pid
      * @return bool
      */
     protected function userPidDesign($pid): bool {
@@ -1330,7 +1336,7 @@ class CopyDataOnSave extends AbstractExternalModule {
 
         $q = $this->query($sql, [$pid, $this->getUser()->getUsername()]);
         
-        while ($row = $q->fetch_assoc($q)) {
+        while ($row = $q->fetch_assoc()) {
             $design = $row['design'];
         }
         return (bool)$design;
@@ -1338,7 +1344,7 @@ class CopyDataOnSave extends AbstractExternalModule {
 
     /**
      * makeRepeatingSetting()
-     * @param string setting value as string 
+     * @param string $settingString value as string 
      * @return array setting value separated into array by line, space, or pipe, whichever produces most elements
      */
     protected function makeRepeatingSetting(string $settingString): array {

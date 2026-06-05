@@ -45,7 +45,7 @@ class ModuleSettingsManager {
         if (isset($lastSaved[0]) && array_key_exists('module_settings', $lastSaved[0]) && static::are_equal($settings, $lastSaved[0]['module_settings'])) {
             // no changes made -> nothing to log
         } else {
-            $logId = $this->module->log(
+            $this->module->log(
                 static::EM_LOG_MESSAGE,
                 array('module_settings' => \json_encode_rc($settings))
             );
@@ -145,7 +145,7 @@ class ModuleSettingsManager {
      */
     public static function are_equal(mixed $value1, mixed $value2): bool {
         if (is_array($value1) && is_array($value2)) {
-
+            if (count($value1) <> count($value2)) return false;
             foreach ($value1 as $v1k => $v1v) {
                 if (!array_key_exists($v1k, $value2)) {
                     return false;

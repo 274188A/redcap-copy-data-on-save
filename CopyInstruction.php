@@ -166,6 +166,9 @@ class CopyInstruction {
         $instructionSettings['record-id-field'] = $this->record_id_field;
         $instructionSettings['record-create'] = "{$this->record_match_option}";
         $instructionSettings['dag-option'] = "{$this->dag_option}";
+        $instructionSettings['dag-map'] = null; // null for deprecated settings - can't set via import
+        $instructionSettings['source-dag']=null;
+        $instructionSettings['dest-dag']=null; 
 
         foreach ($this->copy_fields as $fieldPair) {
             $instructionSettings['copy-fields'][] = 'true';
